@@ -13,44 +13,95 @@ const render = require("./lib/htmlRenderer");
 
 // Write code to use inquirer to gather information about the development team members,
 // and to create objects for each team member (using the correct classes as blueprints!)
-function getUserInput() {
-    inquirer.prompt([
-        {
+function askQuestions() {
+    inquirer
+        .prompt([{
             type: "input",
+            message: "What is your name?",
             name: "name",
-            message: "Enter your name please"
         },
         {
+            type: "number",
+            message: "What is your ID?",
+            name: "id",
+        }, {
             type: "input",
-            name: "ID",
-            message: "please enter your ID"
+            message: "What is your email address?",
+            name: "email",
         },
         {
-            type: "input",
+            type: "list",
+            message: "What is your role?",
             name: "role",
-            message: "please enter your role"
-        },
-    ]).then(answers => {
-        const name = answers.name;
-        const id = answers.id;
-        const role = answers.role;
-        getInfo(name, id, role);
-
-        if (role === "Manager") {
-            inquirer.prompt([{
-                type: "input",
-                name: "number",
-                message: "please enter your officeNumber"
-            }]).then(number => {
-                employee.append(new Manager (name, id, role, number.number));
+            choices: ["Engineer", "Intern", "Manager"]
+        }
+        ])
+        .then(
+            function ({ name, id, email, role }) {
+                switch (role) {
+                    case "Engineer":
+                        inquirer
+                            .prompt({
+                                type: "input",
+                                message: "What is your GitHub username?",
+                                name: "github"
+                            }).then(
+                                function ({ github }) {
+                                    generateEngineer(name, id, email, github)
+                                    addOtherMembers()
+                                }
+                            )
+                        break
+                    case "Intern":
+                        inquirer
+                            .prompt({
+                                type: "input",
+                                message: "What school do you attend?",
+                                name: "school"
+                            }).then(
+                                function ({ school }) {
+                                    generateIntern(name, id, email, school)
+                                    addOtherMembers()
+                                }
+                            )
+                        break
+                    case "Manager":
+                        inquirer
+                            .prompt({
+                                type: "input",
+                                message: "What is your Office Number?",
+                                name: "officeNumber"
+                            }).then(
+                                function ({ officeNumber }) {
+                                    generateManager(name, id, email, officeNumber)
+                                    addOtherMembers()
+                                }
+                            )
+                        break
+                }
             })
-                
-        
-        } else if (role === "Intern")
-
-      
 }
-getUserInput();
+
+function addOtherMembers() {
+    inquirer.prompt({
+        type: "confirm",
+        message: "Add other Team Members?",
+        name: "addOtherMembers"
+    }).then(
+        function({addOtherMembers}) {
+            console.log ("add other members", addOtherMembers)
+            if (addOtherMembers) {
+                askQuestions()
+            }else {
+                renderHTML()
+            }
+        }
+    ).catch(err => {
+        console.log ("Error adding other members", err)
+        throw err
+    })
+}
+askQuestions()
 // After the user has input all employees desired, call the `render` function (required
 // above) and pass in an array containing all employee objects; the `render` function will
 // generate and return a block of HTML including templated divs for each employee!
